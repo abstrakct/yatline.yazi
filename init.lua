@@ -121,7 +121,9 @@ end
 --- @return Line line A Line which has component and separator.
 local function connect_separator(component, side, separator_type)
 	local open, close
-	if separator_type == SeparatorType.OUTER and not (separator_style.bg == "reset" and separator_style.fg == "reset") then
+	if
+		separator_type == SeparatorType.OUTER and not (separator_style.bg == "reset" and separator_style.fg == "reset")
+	then
 		open = ui.Span(section_separator_open)
 		close = ui.Span(section_separator_close)
 
@@ -132,7 +134,7 @@ local function connect_separator(component, side, separator_type)
 
 				separator_style.fg, separator_style.bg = separator_style.bg, separator_style.fg
 			else
-				return ui.Line { component }
+				return ui.Line({ component })
 			end
 		end
 	else
@@ -144,9 +146,9 @@ local function connect_separator(component, side, separator_type)
 	close:style(separator_style)
 
 	if side == Side.LEFT then
-		return ui.Line { component, close }
+		return ui.Line({ component, close })
 	else
-		return ui.Line { open, component }
+		return ui.Line({ open, component })
 	end
 end
 
@@ -182,18 +184,17 @@ end
 --- Capture output of a command
 --- Taken from https://stackoverflow.com/questions/132397/get-back-the-output-of-os-execute-in-lua
 function os.capture(cmd, raw)
-    local f = assert(io.popen(cmd, "r"))
-    local s = assert(f:read("*a"))
-    f:close()
-    if raw then
-        return s
-    end
-    s = string.gsub(s, "^%s+", "")
-    s = string.gsub(s, "%s+$", "")
-    s = string.gsub(s, "[\n\r]+", " ")
-    return s
+	local f = assert(io.popen(cmd, "r"))
+	local s = assert(f:read("*a"))
+	f:close()
+	if raw then
+		return s
+	end
+	s = string.gsub(s, "^%s+", "")
+	s = string.gsub(s, "%s+$", "")
+	s = string.gsub(s, "[\n\r]+", " ")
+	return s
 end
-
 
 --========================--
 -- Component String Group --
@@ -214,7 +215,7 @@ function Yatline.string.create(string, component_type)
 	set_mode_style(cx.active.mode)
 	set_component_style(span, component_type)
 
-	return ui.Line{span}
+	return ui.Line({ span })
 end
 
 --- Gets the hovered file's name of the current active tab.
@@ -379,10 +380,9 @@ end
 
 --- Gets the local hostname
 --- @return string hostname The hostname
--- function Yatline.string.get:hostname()
---     return tostring(os.capture("hostname", false))
--- end
-
+function Yatline.string.get:hostname()
+	return tostring(os.capture("hostname", false))
+end
 
 --======================--
 -- Component Line Group --
@@ -453,8 +453,8 @@ function Yatline.line.get:tabs(side)
 				set_mode_style(cx.tabs[i + 1].mode)
 
 				local open, close
-				if style_a.bg ~= "reset" or ( show_background and style_c.bg ~= "reset" ) then
-					if not show_background or ( show_background and style_c.bg == "reset" ) then
+				if style_a.bg ~= "reset" or (show_background and style_c.bg ~= "reset") then
+					if not show_background or (show_background and style_c.bg == "reset") then
 						separator_style.fg = style_a.bg
 						if show_background then
 							separator_style.bg = style_c.bg
@@ -482,9 +482,9 @@ function Yatline.line.get:tabs(side)
 				close:style(separator_style)
 
 				if in_side == Side.LEFT then
-					lines[#lines + 1] = ui.Line { span, close }
+					lines[#lines + 1] = ui.Line({ span, close })
 				else
-					lines[#lines + 1] = ui.Line { open, span }
+					lines[#lines + 1] = ui.Line({ open, span })
 				end
 			else
 				separator_style.fg = style_c.fg
@@ -596,7 +596,7 @@ function Yatline.coloreds.get:count()
 
 	local coloreds = {
 		{ string.format(" %s %d ", selected_icon, num_selected), selected_fg },
-		{ string.format(" %s %d ", yanked_icon, num_yanked),     yanked_fg }
+		{ string.format(" %s %d ", yanked_icon, num_yanked), yanked_fg },
 	}
 
 	return coloreds
@@ -609,8 +609,8 @@ function Yatline.coloreds.get:task_states()
 
 	local coloreds = {
 		{ string.format(" %s %d ", task_total_icon, tasks.total), task_total_fg },
-		{ string.format(" %s %d ", task_succ_icon, tasks.succ),   task_succ_fg },
-		{ string.format(" %s %d ", task_fail_icon, tasks.fail),   task_fail_fg }
+		{ string.format(" %s %d ", task_succ_icon, tasks.succ), task_succ_fg },
+		{ string.format(" %s %d ", task_fail_icon, tasks.fail), task_fail_fg },
 	}
 
 	return coloreds
@@ -622,7 +622,7 @@ function Yatline.coloreds.get:task_workload()
 	local tasks = cx.tasks.progress
 
 	local coloreds = {
-		{ string.format(" %s %d ", task_found_icon, tasks.found),         task_found_fg },
+		{ string.format(" %s %d ", task_found_icon, tasks.found), task_found_fg },
 		{ string.format(" %s %d ", task_processed_icon, tasks.processed), task_processed_fg },
 	}
 
@@ -644,7 +644,6 @@ function Yatline.coloreds.get:string_based_component(component_name, fg, params)
 		else
 			output = getter()
 		end
-
 
 		if output ~= nil and output ~= "" then
 			return { { " " .. output .. " ", fg } }
@@ -669,7 +668,13 @@ end
 --- @param num_section_c_components integer Number of components in section-c.
 --- @return table section_line_components Array of line components whether or not connected with separators.
 --- @see connect_separator To know how component and separator connected.
-local function config_components_separators(section_components, component_type, in_side, num_section_b_components, num_section_c_components)
+local function config_components_separators(
+	section_components,
+	component_type,
+	in_side,
+	num_section_b_components,
+	num_section_c_components
+)
 	local num_section_components = #section_components
 	local section_line_components = {}
 	for i, component in ipairs(section_components) do
@@ -704,7 +709,7 @@ local function config_components_separators(section_components, component_type, 
 							separator_style.bg = style_c.bg
 						end
 					else
-							separator_style.bg = style_c.bg
+						separator_style.bg = style_c.bg
 					end
 				end
 
@@ -737,9 +742,27 @@ local function config_components(section_a_components, section_b_components, sec
 	local num_section_b_components = #section_b_components
 	local num_section_c_components = #section_c_components
 
-	local section_a_line_components = config_components_separators(section_a_components, ComponentType.A, in_side, num_section_b_components, num_section_c_components)
-	local section_b_line_components = config_components_separators(section_b_components, ComponentType.B, in_side, num_section_b_components, num_section_c_components)
-	local section_c_line_components = config_components_separators(section_c_components, ComponentType.C, in_side, num_section_b_components, num_section_c_components)
+	local section_a_line_components = config_components_separators(
+		section_a_components,
+		ComponentType.A,
+		in_side,
+		num_section_b_components,
+		num_section_c_components
+	)
+	local section_b_line_components = config_components_separators(
+		section_b_components,
+		ComponentType.B,
+		in_side,
+		num_section_b_components,
+		num_section_c_components
+	)
+	local section_c_line_components = config_components_separators(
+		section_c_components,
+		ComponentType.C,
+		in_side,
+		num_section_b_components,
+		num_section_c_components
+	)
 
 	return section_a_line_components, section_b_line_components, section_c_line_components
 end
@@ -774,7 +797,8 @@ local function config_side(side)
 
 			if component_group then
 				if component.custom then
-					section_components[#section_components + 1] = { component_group.create(component.name, in_section), component_group.has_separator }
+					section_components[#section_components + 1] =
+						{ component_group.create(component.name, in_section), component_group.has_separator }
 				else
 					local getter = component_group.get[component.name]
 
@@ -787,7 +811,8 @@ local function config_side(side)
 						end
 
 						if output ~= nil and output ~= "" then
-							section_components[#section_components + 1] = { component_group.create(output, in_section), component_group.has_separator }
+							section_components[#section_components + 1] =
+								{ component_group.create(output, in_section), component_group.has_separator }
 						end
 					end
 				end
@@ -807,7 +832,8 @@ end
 local function config_line(side, in_side)
 	local section_a_components, section_b_components, section_c_components = config_side(side)
 
-	local section_a_line_components, section_b_line_components, section_c_line_components = config_components(section_a_components, section_b_components, section_c_components, in_side)
+	local section_a_line_components, section_b_line_components, section_c_line_components =
+		config_components(section_a_components, section_b_components, section_c_components, in_side)
 
 	if in_side == Side.RIGHT then
 		section_a_line_components = reverse_order(section_a_line_components)
@@ -819,10 +845,10 @@ local function config_line(side, in_side)
 	local section_b_line = ui.Line(section_b_line_components)
 	local section_c_line = ui.Line(section_c_line_components)
 
-	if  in_side == Side.LEFT then
-		return ui.Line {section_a_line, section_b_line, section_c_line}
+	if in_side == Side.LEFT then
+		return ui.Line({ section_a_line, section_b_line, section_c_line })
 	else
-		return ui.Line {section_c_line, section_b_line, section_a_line}
+		return ui.Line({ section_c_line, section_b_line, section_a_line })
 	end
 end
 
@@ -875,8 +901,16 @@ return {
 			display_status_line = true
 		end
 
-		local header_line = config.header_line or { left = { section_a = {}, section_b = {}, section_c = {} }, right = { section_a = {}, section_b = {}, section_c = {} } }
-		local status_line = config.status_line or { left = { section_a = {}, section_b = {}, section_c = {} }, right = { section_a = {}, section_b = {}, section_c = {} } }
+		local header_line = config.header_line
+			or {
+				left = { section_a = {}, section_b = {}, section_c = {} },
+				right = { section_a = {}, section_b = {}, section_c = {} },
+			}
+		local status_line = config.status_line
+			or {
+				left = { section_a = {}, section_b = {}, section_c = {} },
+				right = { section_a = {}, section_b = {}, section_c = {} },
+			}
 
 		if config.theme then
 			config = config.theme
@@ -920,8 +954,8 @@ return {
 			style_a_un_set_bg = "brightred"
 		end
 
-		style_b = config.style_b or { bg = "brightblack", fg =  "brightwhite" }
-		style_c = config.style_c or { bg = "black", fg =  "brightwhite" }
+		style_b = config.style_b or { bg = "brightblack", fg = "brightwhite" }
+		style_c = config.style_c or { bg = "black", fg = "brightwhite" }
 
 		permissions_t_fg = config.permissions_t_fg or "green"
 		permissions_r_fg = config.permissions_r_fg or "yellow"
@@ -1014,8 +1048,8 @@ return {
 			local left = progress.total - progress.succ
 			return {
 				gauge
-				:percent(percent)
-				:label(ui.Span(string.format("%3d%%, %d left", percent, left)):style(THEME.status.progress_label)),
+					:percent(percent)
+					:label(ui.Span(string.format("%3d%%, %d left", percent, left)):style(THEME.status.progress_label)),
 			}
 		end
 
@@ -1027,15 +1061,21 @@ return {
 
 					return {
 						config_paragraph(self._area, left_line),
-						ui.Text(right_line):area(self._area):align(ui.Text.RIGHT)
+						ui.Text(right_line):area(self._area):align(ui.Text.RIGHT),
 					}
 				end
 
-				Header.children_add = function() return {} end
-				Header.children_remove = function() return {} end
+				Header.children_add = function()
+					return {}
+				end
+				Header.children_remove = function()
+					return {}
+				end
 			end
 		else
-			Header.redraw = function() return {} end
+			Header.redraw = function()
+				return {}
+			end
 		end
 
 		if display_status_line then
@@ -1052,17 +1092,25 @@ return {
 					}
 				end
 
-				Status.children_add = function() return {} end
-				Status.children_remove = function() return {} end
+				Status.children_add = function()
+					return {}
+				end
+				Status.children_remove = function()
+					return {}
+				end
 			end
 		else
-			Status.redraw = function() return {} end
+			Status.redraw = function()
+				return {}
+			end
 		end
 
 		Root.layout = function(self)
 			local constraints = {}
 			for _, component in ipairs(component_positions) do
-				if (component == "header" and display_header_line) or (component == "status" and display_status_line) then
+				if
+					(component == "header" and display_header_line) or (component == "status" and display_status_line)
+				then
 					table.insert(constraints, ui.Constraint.Length(1))
 				elseif component == "tab" then
 					table.insert(constraints, ui.Constraint.Fill(1))
