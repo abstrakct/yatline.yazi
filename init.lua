@@ -179,6 +179,22 @@ local function reverse_order(array)
 	return reversed
 end
 
+--- Capture output of a command
+--- Taken from https://stackoverflow.com/questions/132397/get-back-the-output-of-os-execute-in-lua
+function os.capture(cmd, raw)
+    local f = assert(io.popen(cmd, "r"))
+    local s = assert(f:read("*a"))
+    f:close()
+    if raw then
+        return s
+    end
+    s = string.gsub(s, "^%s+", "")
+    s = string.gsub(s, "%s+$", "")
+    s = string.gsub(s, "[\n\r]+", " ")
+    return s
+end
+
+
 --========================--
 -- Component String Group --
 --========================--
@@ -360,6 +376,13 @@ end
 function Yatline.string.get:date(format)
 	return tostring(os.date(format))
 end
+
+--- Gets the local hostname
+--- @return string hostname The hostname
+-- function Yatline.string.get:hostname()
+--     return tostring(os.capture("hostname", false))
+-- end
+
 
 --======================--
 -- Component Line Group --
