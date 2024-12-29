@@ -196,6 +196,21 @@ function os.capture(cmd, raw)
 	return s
 end
 
+--- Trims the filename if it is longer than the max_length.
+--- @param filename string The name of a file which will be trimmed.
+--- @param max_length integer Maximum length of the filename.
+--- @param trim_length integer Length of the trimmed filename.
+--- @return string trimmed_filename Trimmed filename.
+local function trim_filename(filename, max_length, trim_length)
+	if not max_length or not trim_length then
+		return filename
+	end
+
+	return #filename > max_length
+			and (string.sub(filename, 1, trim_length) .. "..." .. string.sub(filename, -trim_length))
+		or filename
+end
+
 --========================--
 -- Component String Group --
 --========================--
@@ -218,14 +233,38 @@ function Yatline.string.create(string, component_type)
 	return ui.Line({ span })
 end
 
+--- Configuration for getting hovered file's name
+--- @class HoveredNameConfig
+--- @field trimed? boolean Whether to trim the filename if it's too long (default: false)
+--- @field max_length? integer Maximum length of the filename (default: 24)
+--- @field trim_length? integer Length of each end when trimming (default: 6)
+--- @field show_symlink? boolean Whether to show symlink target (default: false)
 --- Gets the hovered file's name of the current active tab.
---- @return string name Current active tab's hovered file's name.
-function Yatline.string.get:hovered_name()
+--- @param config? HoveredNameConfig Configuration for getting hovered file's name
+--- @return string name Current active tab's hovered file's name
+function Yatline.string.get:hovered_name(config)
 	local hovered = cx.active.current.hovered
-	if hovered then
-		return hovered.name
-	else
+	if not hovered then
 		return ""
+	end
+
+	if not config then
+		return hovered.name
+	end
+
+	local trimed = config.trimed or false
+	local max_length = config.max_length or 24
+	local trim_length = config.trim_length or 6
+	local show_symlink = config.show_symlink or false
+
+	local linked = (show_symlink and hovered.link_to ~= nil) and (" -> " .. tostring(hovered.link_to)) or ""
+
+	if trimed then
+		local trimmed_name = trim_filename(hovered.name, max_length, trim_length)
+		local trimmed_linked = trim_filename(linked, max_length, trim_length)
+		return trimmed_name .. trimmed_linked
+	else
+		return hovered.name .. linked
 	end
 end
 
