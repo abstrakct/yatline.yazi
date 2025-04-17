@@ -308,6 +308,22 @@ local function trim_filename(filename, max_length, trim_length)
 	return utf8sub(filename, 1, trim_length) .. "..." .. utf8sub(filename, len - trim_length + 1, len)
 end
 
+--- Capture output of a command
+--- Taken from https://stackoverflow.com/questions/132397/get-back-the-output-of-os-execute-in-lua
+function os.capture(cmd, raw)
+	local f = assert(io.popen(cmd, "r"))
+	local s = assert(f:read("*a"))
+	f:close()
+	if raw then
+		return s
+	end
+	s = string.gsub(s, "^%s+", "")
+	s = string.gsub(s, "%s+$", "")
+	s = string.gsub(s, "[\n\r]+", " ")
+	return s
+end
+
+
 --========================--
 -- Component String Group --
 --========================--
