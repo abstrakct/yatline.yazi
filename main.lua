@@ -573,6 +573,12 @@ function Yatline.string.get:date(format)
 	return tostring(os.date(format))
 end
 
+--- Gets the local hostname
+--- @return string hostname The hostname
+function Yatline.string.get:hostname()
+    return tostring(os.capture("hostname", false))
+end
+
 --======================--
 -- Component Line Group --
 --======================--
