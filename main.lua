@@ -581,7 +581,9 @@ end
 --- Gets the free/total disk space of current directory
 --- @return string diskinfo The info formatted
 function Yatline.string.get:diskinfo()
-    return tostring(os.capture("df -kh . | awk '!/^Filesystem/{printf \" %s/%s \", $(NF-2), $(NF-4)}'", false))
+    -- return tostring(os.capture("df -kh . | awk '!/^Filesystem/{printf \" %s/%s \", $(NF-2), $(NF-4)}'", false))
+    freespace = tostring(os.capture("df . -BG --output=avail | grep -v Avail", false))
+    return string.format("%s FREE" , freespace)
 end
 
 --======================--
