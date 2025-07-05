@@ -578,6 +578,12 @@ function Yatline.string.get:hostname()
     return tostring(os.capture("hostname", false))
 end
 
+--- Gets the free/total disk space of current directory
+--- @return string diskinfo The info formatted
+function Yatline.string.get:diskinfo()
+    return tostring(os.capture("df -kh . | awk '!/^Filesystem/{printf \" %s/%s \", $(NF-2), $(NF-4)}'", false))
+end
+
 --======================--
 -- Component Line Group --
 --======================--
