@@ -440,6 +440,7 @@ function Yatline.string.get:hovered_mime()
 end
 
 --- Gets the hovered file's user and group ownership of the current active tab.
+--- Unix-like systems only.
 --- @return string ownership Current active tab's hovered file's user and group ownership.
 function Yatline.string.get:hovered_ownership()
     local hovered = cx.active.current.hovered
@@ -750,6 +751,7 @@ function Yatline.coloreds.create(coloreds, component_type)
 end
 
 --- Gets the hovered file's permissions of the current active tab.
+--- Unix-like systems only.
 --- @return Coloreds coloreds Current active tab's hovered file's permissions
 function Yatline.coloreds.get:permissions()
     local hovered = cx.active.current.hovered
