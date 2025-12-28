@@ -1,3 +1,4 @@
+--- @since 25.5.31
 --- @diagnostic disable: undefined-global, undefined-field
 --- @alias Mode Mode Comes from Yazi.
 --- @alias Rect Rect Comes from Yazi.
@@ -583,7 +584,7 @@ end
 function Yatline.string.get:diskinfo()
     -- return tostring(os.capture("df -kh . | awk '!/^Filesystem/{printf \" %s/%s \", $(NF-2), $(NF-4)}'", false))
     freespace = tostring(os.capture("df . -BG --output=avail | grep -v Avail", false))
-    return string.format("%s FREE" , freespace)
+    return string.format("%s FREE", freespace)
 end
 
 --======================--
@@ -1292,10 +1293,9 @@ return {
             end
 
             local left = progress.total - progress.succ
-            return
-                gauge
-                    :percent(percent)
-                    :label(ui.Span(string.format("%3d%%, %d left", percent, left)):style(th.status.progress_label))
+            return gauge
+                :percent(percent)
+                :label(ui.Span(string.format("%3d%%, %d left", percent, left)):style(th.status.progress_label))
         end
 
         if display_header_line then
@@ -1333,7 +1333,7 @@ return {
                     return {
                         config_paragraph(self._area, left_line),
                         right_line:area(self._area):align(ui.Align.RIGHT),
-						table.unpack(ui.redraw(Progress:new(self._area, right_width))),
+                        table.unpack(ui.redraw(Progress:new(self._area, right_width))),
                     }
                 end
 
