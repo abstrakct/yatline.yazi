@@ -1,4 +1,4 @@
---- @since 25.5.31
+--- @since 25.12.29
 --- @diagnostic disable: undefined-global, undefined-field
 --- @alias Mode Mode Comes from Yazi.
 --- @alias Rect Rect Comes from Yazi.
@@ -859,12 +859,12 @@ end
 --- Gets the number of task states.
 --- @return Coloreds coloreds Number of task states.
 function Yatline.coloreds.get:task_states()
-    local tasks = cx.tasks.progress
+    local tasks = cx.tasks.summary
 
 	local coloreds = {
 		{ string.format("%s %d ", task_total_icon, tasks.total), task_total_fg },
-		{ string.format("%s %d ", task_succ_icon, tasks.succ), task_succ_fg },
-		{ string.format("%s %d", task_fail_icon, tasks.fail), task_fail_fg },
+		{ string.format("%s %d ", task_succ_icon, tasks.success), task_succ_fg },
+		{ string.format("%s %d", task_fail_icon, tasks.failed), task_fail_fg },
 	}
 
     return coloreds
@@ -873,11 +873,11 @@ end
 --- Gets the number of task workloads.
 --- @return Coloreds coloreds Number of task workloads.
 function Yatline.coloreds.get:task_workload()
-    local tasks = cx.tasks.progress
+    local tasks = cx.tasks.summary
 
 	local coloreds = {
-		{ string.format("%s %d ", task_found_icon, tasks.found), task_found_fg },
-		{ string.format("%s %d", task_processed_icon, tasks.processed), task_processed_fg },
+		{ string.format("%s %d ", task_found_icon, tasks.total), task_found_fg },
+		{ string.format("%s %d", task_processed_icon, tasks.success), task_processed_fg },
 	}
 
     return coloreds
@@ -1388,7 +1388,7 @@ return {
         config = nil
 
         Progress.partial_render = function(self)
-            local progress = cx.tasks.progress
+            local progress = cx.tasks.summary
             if progress.total == 0 then
                 return config_paragraph(self._area)
             end
@@ -1400,12 +1400,9 @@ return {
                 gauge = gauge:gauge_style(th.status.progress_error)
             end
 
-            local percent = 99
-            if progress.found ~= 0 then
-                percent = math.min(99, ya.round(progress.processed * 100 / progress.found))
-            end
+            local percent = progress.percent
 
-			local left = progress.total - progress.succ
+			local left = progress.total - progress.success
 			return {
 				gauge
 					:percent(percent)
