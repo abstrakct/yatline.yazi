@@ -105,18 +105,43 @@ local function set_mode_style(mode)
     end
 end
 
+--- Helper function to apply style table to a component
+--- @param component Span The component to style
+--- @param style table The style table with fg and/or bg fields
+local function apply_style(component, style)
+	if not style then
+		return component
+	end
+	if style.fg then
+		component:fg(style.fg)
+	end
+	if style.bg then
+		component:bg(style.bg)
+	end
+	return component
+end
+
 --- Sets the style of the component according to the its type.
 --- @param component Span Component that will be styled.
 --- @param component_type ComponentType Which section component will be in [ a | b | c ].
 --- @see Style To see how to style, in Yazi's documentation.
 local function set_component_style(component, component_type)
-    if component_type == ComponentType.A then
-        component:style(style_a):bold()
-    elseif component_type == ComponentType.B then
-        component:style(style_b)
-    else
-        component:style(style_c)
-    end
+	local style
+	if component_type == ComponentType.A then
+		style = style_a
+	elseif component_type == ComponentType.B then
+		style = style_b
+	else
+		style = style_c
+	end
+
+	-- Apply style using individual methods instead of :style()
+	apply_style(component, style)
+
+	-- Apply bold for style_a
+	if component_type == ComponentType.A then
+		component:bold()
+	end
 end
 
 --- Connects component to a separator.
@@ -147,8 +172,8 @@ local function connect_separator(component, side, separator_type)
         close = ui.Span(part_separator_close)
     end
 
-    open:style(separator_style)
-    close:style(separator_style)
+	apply_style(open, separator_style)
+	apply_style(close, separator_style)
 
     if side == Side.LEFT then
         return ui.Line({ component, close })
@@ -445,18 +470,18 @@ end
 function Yatline.string.get:hovered_ownership()
     local hovered = cx.active.current.hovered
 
-    if hovered then
-        if not hovered.cha.uid or not hovered.cha.gid then
-            return ""
-        end
+	if hovered then
+		if not hovered.cha.uid or not hovered.cha.gid then
+			return ""
+		end
 
-        local username = ya.user_name(hovered.cha.uid) or tostring(hovered.cha.uid)
-        local groupname = ya.group_name(hovered.cha.gid) or tostring(hovered.cha.gid)
+		local username = ya.user_name(hovered.cha.uid) or tostring(hovered.cha.uid)
+		local groupname = ya.group_name(hovered.cha.gid) or tostring(hovered.cha.gid)
 
-        return username .. ":" .. groupname
-    else
-        return ""
-    end
+		return username .. ":" .. groupname
+	else
+		return ""
+	end
 end
 
 --- Gets the hovered file's extension of the current active tab.
@@ -547,11 +572,11 @@ function Yatline.string.get:cursor_position()
     local cursor = cx.active.current.cursor
     local length = #cx.active.current.files
 
-    if length ~= 0 then
-        return string.format(" %2d/%-2d", cursor + 1, length)
-    else
-        return "0"
-    end
+	if length ~= 0 then
+		return string.format("%d/%d", cursor + 1, length)
+	else
+		return "0"
+	end
 end
 
 --- Gets the cursor position as percentage which is according to the number of files inside of current active tab.
@@ -564,13 +589,13 @@ function Yatline.string.get:cursor_percentage()
         percentage = math.floor((cursor + 1) * 100 / length)
     end
 
-    if percentage == 0 then
-        return " Top "
-    elseif percentage == 100 then
-        return " Bot "
-    else
-        return string.format("%3d%% ", percentage)
-    end
+	if percentage == 0 then
+		return "Top"
+	elseif percentage == 100 then
+		return "Bot"
+	else
+		return string.format("%d%%", percentage)
+	end
 end
 
 --- Gets the local date or time values.
@@ -628,11 +653,11 @@ function Yatline.line.get:tabs(side)
         in_side = Side.RIGHT
     end
 
-    for i = 1, tabs do
-        local text = i
-        if tab_width > 2 then
-            text = ya.truncate(text .. " " .. cx.tabs[i].name, { max = tab_width })
-        end
+	for i = 1, tabs do
+		local text = i
+		if tab_width > 2 then
+			text = ui.truncate(text .. " " .. cx.tabs[i].name, { max = tab_width })
+		end
 
         separator_style = { bg = nil, fg = nil }
         if i == cx.tabs.idx then
@@ -650,15 +675,15 @@ function Yatline.line.get:tabs(side)
             else
                 separator_style.fg = style_a.fg
 
-                lines[#lines + 1] = connect_separator(span, in_side, SeparatorType.INNER)
-            end
-        else
-            local span = ui.Span(" " .. text .. " ")
-            if show_background then
-                set_component_style(span, ComponentType.C)
-            else
-                span:style({ fg = style_c.fg })
-            end
+				lines[#lines + 1] = connect_separator(span, in_side, SeparatorType.INNER)
+			end
+		else
+			local span = ui.Span(" " .. text .. " ")
+			if show_background then
+				set_component_style(span, ComponentType.C)
+			else
+				span:fg(style_c.fg)
+			end
 
             if i == cx.tabs.idx - 1 then
                 set_mode_style(cx.tabs[i + 1].mode)
@@ -689,8 +714,8 @@ function Yatline.line.get:tabs(side)
                     close = ui.Span(part_separator_close)
                 end
 
-                open:style(separator_style)
-                close:style(separator_style)
+				apply_style(open, separator_style)
+				apply_style(close, separator_style)
 
                 if in_side == Side.LEFT then
                     lines[#lines + 1] = ui.Line({ span, close })
@@ -759,9 +784,8 @@ function Yatline.coloreds.get:permissions()
     if hovered then
         local perm = hovered.cha:perm()
 
-        if perm then
-            local coloreds = {}
-            coloreds[1] = { " ", "black" }
+		if perm then
+			local coloreds = {}
 
             for i = 1, #perm do
                 local c = perm:sub(i, i)
@@ -777,18 +801,16 @@ function Yatline.coloreds.get:permissions()
                     fg = permissions_x_fg
                 end
 
-                coloreds[i + 1] = { c, fg }
-            end
+				table.insert(coloreds, { c, fg })
+			end
 
-            coloreds[#perm + 2] = { " ", "black" }
-
-            return coloreds
-        else
-            return ""
-        end
-    else
-        return ""
-    end
+			return coloreds
+		else
+			return ""
+		end
+	else
+		return ""
+	end
 end
 
 --- Gets the number of selected and yanked files and also number of files or filtered files of the active tab.
@@ -817,19 +839,19 @@ function Yatline.coloreds.get:count(filter)
         files_count_fg = files_fg
     end
 
-    local coloreds
-    if filter then
-        coloreds = {
-            { string.format(" %s %d ", files_count_icon, num_files), files_count_fg },
-            { string.format(" %s %d ", selected_icon, num_selected), selected_fg },
-            { string.format(" %s %d ", yanked_icon, num_yanked), yanked_fg },
-        }
-    else
-        coloreds = {
-            { string.format(" %s %d ", selected_icon, num_selected), selected_fg },
-            { string.format(" %s %d ", yanked_icon, num_yanked), yanked_fg },
-        }
-    end
+	local coloreds
+	if filter then
+		coloreds = {
+			{ string.format("%s %d ", files_count_icon, num_files), files_count_fg },
+			{ string.format("%s %d ", selected_icon, num_selected), selected_fg },
+			{ string.format("%s %d", yanked_icon, num_yanked), yanked_fg },
+		}
+	else
+		coloreds = {
+			{ string.format("%s %d ", selected_icon, num_selected), selected_fg },
+			{ string.format("%s %d", yanked_icon, num_yanked), yanked_fg },
+		}
+	end
 
     return coloreds
 end
@@ -839,11 +861,11 @@ end
 function Yatline.coloreds.get:task_states()
     local tasks = cx.tasks.progress
 
-    local coloreds = {
-        { string.format(" %s %d ", task_total_icon, tasks.total), task_total_fg },
-        { string.format(" %s %d ", task_succ_icon, tasks.succ), task_succ_fg },
-        { string.format(" %s %d ", task_fail_icon, tasks.fail), task_fail_fg },
-    }
+	local coloreds = {
+		{ string.format("%s %d ", task_total_icon, tasks.total), task_total_fg },
+		{ string.format("%s %d ", task_succ_icon, tasks.succ), task_succ_fg },
+		{ string.format("%s %d", task_fail_icon, tasks.fail), task_fail_fg },
+	}
 
     return coloreds
 end
@@ -853,10 +875,10 @@ end
 function Yatline.coloreds.get:task_workload()
     local tasks = cx.tasks.progress
 
-    local coloreds = {
-        { string.format(" %s %d ", task_found_icon, tasks.found), task_found_fg },
-        { string.format(" %s %d ", task_processed_icon, tasks.processed), task_processed_fg },
-    }
+	local coloreds = {
+		{ string.format("%s %d ", task_found_icon, tasks.found), task_found_fg },
+		{ string.format("%s %d", task_processed_icon, tasks.processed), task_processed_fg },
+	}
 
     return coloreds
 end
@@ -877,14 +899,14 @@ function Yatline.coloreds.get:string_based_component(component_name, fg, params)
             output = getter()
         end
 
-        if output ~= nil and output ~= "" then
-            return { { " " .. output .. " ", fg } }
-        else
-            return ""
-        end
-    else
-        return ""
-    end
+		if output ~= nil and output ~= "" then
+			return { { output, fg } }
+		else
+			return ""
+		end
+	else
+		return ""
+	end
 end
 
 --===============--
@@ -1027,14 +1049,14 @@ local function config_side(side)
         for _, component in ipairs(components) do
             local component_group = Yatline[component.type]
 
-            if component_group then
-                if component.custom then
-                    if component.name ~= nil and component.name ~= "" and #component.name ~= 0 then
-                        section_components[#section_components + 1] =
-                            { component_group.create(component.name, in_section), component_group.has_separator }
-                    end
-                else
-                    local getter = component_group.get[component.name]
+			if component_group then
+				if component.custom then
+					if component.name ~= nil and component.name ~= "" and #component.name ~= 0 then
+						section_components[#section_components + 1] =
+							{ component_group.create(component.name, in_section), component_group.has_separator }
+					end
+				else
+					local getter = component_group.get[component.name]
 
                     if getter then
                         local output
@@ -1107,19 +1129,97 @@ end
 --- @param line? Line The line which used in paragraph. It is optional.
 --- @return Paragraph paragraph Configured parapgraph.
 local function config_paragraph(area, line)
-    local line_array = { line } or {}
-    if show_background then
-        return ui.Text(line_array):area(area):style(style_c)
-    else
-        return ui.Text(line_array):area(area)
-    end
+	local line_array = { line } or {}
+	local text = ui.Text(line_array):area(area)
+	if show_background and style_c and style_c.bg and style_c.fg then
+		return apply_style(text, style_c)
+	else
+		return text
+	end
 end
 
 return {
-    setup = function(_, config)
-        config = config or {}
+	setup = function(_, config, pre_theme)
+		config = config or {}
 
-        tab_width = config.tab_width or 20
+		if config == 0 then
+			config = {
+				show_background = false,
+
+				header_line = {
+					left = {
+						section_a = {
+							{ type = "line", custom = false, name = "tabs", params = { "left" } },
+						},
+						section_b = {},
+						section_c = {},
+					},
+					right = {
+						section_a = {
+							{ type = "string", custom = false, name = "date", params = { "%A, %d %B %Y" } },
+						},
+						section_b = {
+							{ type = "string", custom = false, name = "date", params = { "%X" } },
+						},
+						section_c = {},
+					},
+				},
+
+				status_line = {
+					left = {
+						section_a = {
+							{ type = "string", custom = false, name = "tab_mode" },
+						},
+						section_b = {
+							{ type = "string", custom = false, name = "hovered_size" },
+						},
+						section_c = {
+							{ type = "string", custom = false, name = "hovered_path" },
+							{ type = "coloreds", custom = false, name = "count" },
+						},
+					},
+					right = {
+						section_a = {
+							{ type = "string", custom = false, name = "cursor_position" },
+						},
+						section_b = {
+							{ type = "string", custom = false, name = "cursor_percentage" },
+						},
+						section_c = {
+							{ type = "string", custom = false, name = "hovered_file_extension", params = { true } },
+							{ type = "coloreds", custom = false, name = "permissions" },
+						},
+					},
+				},
+			}
+		end
+
+		-- Auto-fill missing sections to prevent config errors
+		if config.header_line then
+			for _, side in ipairs({ "left", "right" }) do
+				if config.header_line[side] then
+					for _, section in ipairs({ "section_a", "section_b", "section_c" }) do
+						config.header_line[side][section] = config.header_line[side][section] or {}
+					end
+				end
+			end
+		end
+
+		if config.status_line then
+			for _, side in ipairs({ "left", "right" }) do
+				if config.status_line[side] then
+					for _, section in ipairs({ "section_a", "section_b", "section_c" }) do
+						config.status_line[side][section] = config.status_line[side][section] or {}
+					end
+				end
+			end
+		end
+
+		if pre_theme then
+			config.theme = pre_theme
+		end
+
+		tab_width = config.tab_width or 20
 
         local component_positions = config.component_positions or { "header", "tab", "status" }
 
@@ -1146,13 +1246,17 @@ return {
                 right = { section_a = {}, section_b = {}, section_c = {} },
             }
 
-        if config.theme then
-            for key, value in pairs(config.theme) do
-                if not config[key] then
-                    config[key] = value
-                end
-            end
-        end
+		config.theme = (not rt.term.light and config.theme_dark)
+			or (rt.term.light and config.theme_light)
+			or config.theme
+
+		if config.theme then
+			for key, value in pairs(config.theme) do
+				if not config[key] then
+					config[key] = value
+				end
+			end
+		end
 
         if config.section_separator then
             section_separator_open = config.section_separator.open
@@ -1301,11 +1405,13 @@ return {
                 percent = math.min(99, ya.round(progress.processed * 100 / progress.found))
             end
 
-            local left = progress.total - progress.succ
-            return gauge
-                :percent(percent)
-                :label(ui.Span(string.format("%3d%%, %d left", percent, left)):style(th.status.progress_label))
-        end
+			local left = progress.total - progress.succ
+			return {
+				gauge
+					:percent(percent)
+					:label(ui.Span(string.format("%3d%%, %d left", percent, left)):style(th.status.progress_label))
+			}
+		end
 
         if display_header_line then
             if show_line(header_line) then
@@ -1313,24 +1419,28 @@ return {
                     local left_line = config_line(header_line.left, Side.LEFT)
                     local right_line = config_line(header_line.right, Side.RIGHT)
 
-                    return {
-                        config_paragraph(self._area, left_line),
-                        right_line:area(self._area):align(ui.Align.RIGHT),
-                    }
-                end
+					return {
+						config_paragraph(self._area, left_line),
+						ui.Text({ right_line }):area(self._area):align(ui.Align.RIGHT),
+					}
+				end
 
-                Header.children_add = function()
-                    return {}
-                end
-                Header.children_remove = function()
-                    return {}
-                end
-            end
-        else
-            Header.redraw = function()
-                return {}
-            end
-        end
+				Header.children_add = function()
+					return {}
+				end
+				Header.children_remove = function()
+					return {}
+				end
+			else
+				Header.redraw = function()
+					return {}
+				end
+			end
+		else
+			Header.redraw = function()
+				return {}
+			end
+		end
 
         if display_status_line then
             if show_line(status_line) then
@@ -1339,25 +1449,36 @@ return {
                     local right_line = config_line(status_line.right, Side.RIGHT)
                     local right_width = right_line:width()
 
-                    return {
-                        config_paragraph(self._area, left_line),
-                        right_line:area(self._area):align(ui.Align.RIGHT),
-                        table.unpack(ui.redraw(Progress:new(self._area, right_width))),
-                    }
-                end
+					local children = {
+						config_paragraph(self._area, left_line),
+						ui.Text({ right_line }):area(self._area):align(ui.Align.RIGHT),
+					}
 
-                Status.children_add = function()
-                    return {}
-                end
-                Status.children_remove = function()
-                    return {}
-                end
-            end
-        else
-            Status.redraw = function()
-                return {}
-            end
-        end
+					-- Add progress bar children if any
+					local progress_children = ui.redraw(Progress:new(self._area, right_width))
+					for _, child in ipairs(progress_children) do
+						table.insert(children, child)
+					end
+
+					return children
+				end
+
+				Status.children_add = function()
+					return {}
+				end
+				Status.children_remove = function()
+					return {}
+				end
+			else
+				Status.redraw = function()
+					return {}
+				end
+			end
+		else
+			Status.redraw = function()
+				return {}
+			end
+		end
 
         Root.layout = function(self)
             local constraints = {}
@@ -1391,9 +1512,9 @@ return {
                 end
             end
 
-            table.insert(childrens, Modal:new(self._area))
+			table.insert(childrens, Modal:new(self._area))
 
-            self._children = childrens
-        end
-    end,
+			self._children = childrens
+		end
+	end,
 }
